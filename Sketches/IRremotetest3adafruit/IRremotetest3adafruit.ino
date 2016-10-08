@@ -39,8 +39,9 @@ int ledStatus2=0;
 uint16_t pulses[NUMPULSES][2];  // pair is high and low pulse 
 uint8_t currentpulse = 0; // index for pulses we're storing
 
-//#include "ircodes.h"
+#include "ircodes.h"
 #include "LGremote.h"
+#include "keyes.h"
 
 void setup(void) {
   Serial.begin(9600);
@@ -58,7 +59,7 @@ void loop(void) {
   Serial.print("Heard ");
   Serial.print(numberpulses);
   Serial.println("-pulse long IR signal");
-  if (IRcompare(numberpulses, LgInputSignal,sizeof(LgInputSignal)/4)) {
+  if (IRcompare(numberpulses, KOneSignal,sizeof(KOneSignal)/4)) {
     Serial.println("One");
     ledStatus1=1;
     digitalWrite(led1,HIGH);
