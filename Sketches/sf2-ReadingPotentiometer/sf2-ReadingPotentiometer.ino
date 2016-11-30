@@ -23,13 +23,15 @@ Visit http://www.arduino.cc to learn about Arduino.
 int sensorPin = 0;    
 
 // Variable for storing the pin number that the LED is connected to                 
-int ledPin = 13;      
+int ledPin = 11;      
 
 // this function runs once when the sketch starts up
 void setup() 
 {
-  //set ledPin (13) as an OUTPUT
+  //set ledPin (11) as an OUTPUT
   pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("Reading Sensor Value from Potentiometer");
 }
 
 // this function runs repeatedly after setup() finishes
@@ -41,7 +43,7 @@ void loop()
 
   //use the analogRead() function to read sensorPin and store the value in sensorValue
   sensorValue = analogRead(sensorPin);    
-
+  Serial.println(sensorValue);
   // Turn the LED on
   digitalWrite(ledPin, HIGH);     
 

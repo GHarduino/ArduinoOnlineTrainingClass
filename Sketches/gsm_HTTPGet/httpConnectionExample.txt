@@ -1,0 +1,10 @@
+AT+SAPBR=3,1,"APN","vodafone"
+AT+SAPBR=1,1
+
+AT+HTTPINIT
+AT+HTTPPARA="CID",1
+AT+HTTPPARA="URL","http://www.iforce2d.net/test.php"
+AT+HTTPACTION=0
+
+AT+HTTPREAD=0,100
+

@@ -2,8 +2,8 @@
 #include <SoftwareSerial.h> // TX RX software library for bluetooth
 #include <Servo.h> // servo library
 Servo myservo; // servo name
-int bluetoothTx = 10; // bluetooth tx to 10 pin
-int bluetoothRx = 11; // bluetooth rx to 11 pin
+int bluetoothTx = 9; // bluetooth tx to 10 pin
+int bluetoothRx = 8; // bluetooth rx to 11 pin
 SoftwareSerial bluetooth(bluetoothTx, bluetoothRx);
 
 void setup()
@@ -21,6 +21,6 @@ void loop()
   {
     int servopos = bluetooth.read(); // save the received number to servopos
     Serial.println(servopos); // serial print servopos current number received from bluetooth
-    myservo.write(servopos); // roate the servo the angle received from the android app
+    //myservo.write(servopos); // roate the servo the angle received from the android app
   }
 }
