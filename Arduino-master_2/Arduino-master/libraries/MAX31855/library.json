@@ -1,0 +1,23 @@
+{
+  "name": "MAX31855",
+  "keywords": "MAX31855 Thermocouple",
+  "description": "Library for MAX31855 Thermocouple.",
+  "authors":
+  [
+    {
+      "name": "Rob Tillaart",
+      "email": "Rob.Tillaart@gmail.com",
+      "maintainer": true
+    }
+  ],
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/RobTillaart/Arduino.git"
+  },
+  "frameworks": "arduino",
+  "platforms": "*",
+  "export": {
+    "include": "libraries/MAX31855"
+  }
+}

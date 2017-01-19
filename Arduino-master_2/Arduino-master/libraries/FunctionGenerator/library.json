@@ -1,0 +1,23 @@
+{
+  "name": "FunctionGenerator",
+  "keywords": "FunctionGenerator sawtooth, sinus, square, stair, triangle",
+  "description": "Experimental library for waveform generation (SW).",
+  "authors":
+  [
+    {
+      "name": "Rob Tillaart",
+      "email": "Rob.Tillaart@gmail.com",
+      "maintainer": true
+    }
+  ],
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/RobTillaart/Arduino.git"
+  },
+  "frameworks": "arduino",
+  "platforms": "*",
+  "export": {
+    "include": "libraries/FunctionGenerator"
+  }
+}

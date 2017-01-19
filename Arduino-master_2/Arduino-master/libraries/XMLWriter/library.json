@@ -1,0 +1,23 @@
+{
+  "name": "XMLWriter",
+  "keywords": "Write XML node header tag indent field",
+  "description": "Library for writing XML files.",
+  "authors":
+  [
+    {
+      "name": "Rob Tillaart",
+      "email": "Rob.Tillaart@gmail.com",
+      "maintainer": true
+    }
+  ],
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/RobTillaart/Arduino.git"
+  },
+  "frameworks": "arduino",
+  "platforms": "*",
+  "export": {
+    "include": "libraries/XMLWriter"
+  }
+}
