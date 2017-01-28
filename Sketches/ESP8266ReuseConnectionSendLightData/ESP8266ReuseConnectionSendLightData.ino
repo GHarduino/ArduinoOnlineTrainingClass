@@ -19,7 +19,7 @@ void setup() {
     USE_SERIAL.begin(115200);
    // USE_SERIAL.setDebugOutput(true);
 
-    USE_SERIAL.println();
+    USE_SERIAL.println("OK");
     USE_SERIAL.println();
     USE_SERIAL.println();
 
@@ -29,7 +29,7 @@ void setup() {
         delay(1000);
     }
 
-    WiFiMulti.addAP("SSID", "PASSWORD");
+    WiFiMulti.addAP("es", "asdfghjkl");
 
     // allow reuse (if server supports it)
     http.setReuse(true);
@@ -39,7 +39,7 @@ void loop() {
     // wait for WiFi connection
     if((WiFiMulti.run() == WL_CONNECTED)) {
 
-        http.begin("http://192.168.1.107/insertdata.php?t1="+String(analogRead(ANALOG_PIN)));
+        http.begin("http://192.168.1.106/insertdata.php?t1="+String(analogRead(ANALOG_PIN)));
         //http.begin("192.168.1.12", 80, "/test.html");
 
         int httpCode = http.GET();
