@@ -75,6 +75,7 @@ void funReadSensor()
   float temp1;
   float light;
   float humidity;
+  
 
 
   //Serial.print("Reading Temp");
