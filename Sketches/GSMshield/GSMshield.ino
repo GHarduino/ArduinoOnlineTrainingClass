@@ -33,7 +33,7 @@ void loop()
     case 'r':
       RecieveTextMessage();//This program code by directive'r'to receive, by receiving the information after the return to call the function 
                            //to verify receiving function. But it can not display the received content in SIM.
-      DialVoiceCall();
+      //DialVoiceCall();
       break;
     case 'd':
       DialVoiceCall();
@@ -64,16 +64,21 @@ void loop()
 }
  void RecieveTextMessage()
   {
-  //mySerial.print("AT+CMGF=1\r"); //Because we want to recieve the SMS in text mode
- //delay(100);
-   mySerial.print("AT+CMGR=1\r");//Because we want to recieve the SMS in text mode
+  
+    mySerial.print("AT+CMGR=1\r");//Because we want to recieve the SMS in text mode
    delay(100);
-   mySerial.println("AT + CSCA = \"+86135*********\"");//recieve sms message, be careful need to add a country code before the cellphone number
+   mySerial.println("AT + CSCA = \"+9595506082\"");//recieve sms message, be careful need to add a country code before the cellphone number
    delay(100);
    mySerial.println("A test message!");//the content of the message
    delay(100);
    mySerial.println((char)26);//the ASCII code of the ctrl+z is 26
+    delay(100);
+   //mySerial.println();
+   //mySerial.println("AT+CMGL=ALL \r");
+   //mySerial.println((char)26);//the ASCII code of the ctrl+z is 26
+   //delay(100);
    delay(100);
+
    mySerial.println();
  //return r;
  }
@@ -108,7 +113,8 @@ void SubmitHttpRequest()
  mySerial.println("AT+HTTPINIT"); //init the HTTP request
  delay(2000); 
  ShowSerialData();
- mySerial.println("AT+HTTPPARA=\"URL\",\"www.google.com.hk\"");// setting the httppara, the second parameter is the website you want to access
+ //mySerial.println("AT+HTTPPARA=\"URL\",\"www.google.com.hk\"");// setting the httppara, the second parameter is the website you want to access
+ mySerial.println("AT+HTTPPARA=\"URL\",\"www.greenhackeronline.com\"");// setting the httppara, the second parameter is the website you want to access
  delay(1000);
  ShowSerialData();
  mySerial.println("AT+HTTPACTION=0");//submit the request 

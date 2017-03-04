@@ -12,7 +12,7 @@
 #define MQ7D_PIN 5
 
 dht DHT;
-SoftwareSerial BlueTooth(11, 10);       //TXD11  RXD12
+SoftwareSerial BlueTooth(7, 6);       //TXD11  RXD12
 
 float temp;
 float temp1;
@@ -121,11 +121,11 @@ void loop() {
   h = String(humidity);
   l = String(light);
   g = String(gas);
-  BlueTooth.println(l + '@' + t + '@' + g + '@' + h );
+  BlueTooth.println(l + '@' + t + '@' + g + '@' + h ); 
   Serial.println(l + '@' + t + '@' + g + '@' + h );
 
   delay(300);
-
+  /*
   for (i = 0; i < 10; i++)
   {
     irsend.sendRaw(irPower, sizeof(irPower) / sizeof(irPower[0]), khz); //Note the approach used to automatically calculate the size of the array.
@@ -143,6 +143,7 @@ void loop() {
       delay(5000); //In this example, the signal will be repeated every 5 seconds, approximately.
     }
   }
+  */
   //irsend.sendRaw(irSignal2, sizeof(irSignal2) / sizeof(irSignal2[0]), khz); //Note the approach used to automatically calculate the size of the array.
   // delay(5000); //In this example, the signal will be repeated every 5 seconds, approximately.
 }
