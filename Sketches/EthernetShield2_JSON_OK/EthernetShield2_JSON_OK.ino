@@ -1,7 +1,7 @@
 /*
   Web client
 
-  This sketch connects to a website (http://www.google.com)
+  This sketch connects to a website (http://192.168.1.100)
   using an Arduino Wiznet Ethernet shield.
 
   Circuit:
@@ -11,6 +11,10 @@
   by David A. Mellis
   modified 9 Apr 2012
   by Tom Igoe, based on work by Adrian McEwen
+
+  modified 8 Apr 2017
+  by Dr. Aung Win Htut (Green Hackers) 
+  Add simple JSON parsing
 
 */
 
@@ -78,39 +82,39 @@ void loop()
   // from the server, read them and print them:
   while (client.available() || !begin)
   {
-    char c = client.read();
+    char c = client.read(); //read one char 
     Serial.print(c);
-    if (c == '{')
+    if (c == '{')           //if start then begin 
     {
       begin = true;
     }
 
-    if (c == '}')
+    if (c == '}')           //if end then exit
     {
       break;
     }
 
-    if (begin && c != '{')
+    if (begin && c != '{')   //if begin record all char except { 
     {
       response += (c);
     }
-    delay(1);
+    delay(1);  //need a little delay to process
   }
   Serial.println();
   Serial.println();
   Serial.println(response);
   Serial.println();
   delay(1000);
-  int start = response.indexOf("Success\":\"") + 11;
+  int start = response.indexOf("Success\":\"") + 11;  //find Success: location index
   int end = start + 1;
-  String nodeId = response.substring(start, end);
+  String nodeId = response.substring(start, end);     //extract one character after start location
   Serial.println(nodeId);
   delay(5000);
   const char* command = "1";
-  if (nodeId == "1")
+  if (nodeId == "1")              //determine command here
   {
 
-    Serial.println("One");
+    Serial.println("One");        //do something according to command
     delay(10000);
 
   }
