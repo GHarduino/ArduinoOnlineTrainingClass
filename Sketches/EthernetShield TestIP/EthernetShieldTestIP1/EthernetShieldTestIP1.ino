@@ -12,7 +12,8 @@
 #include <SPI.h>
 #include <Ethernet.h>
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED }; //physical mac address
-char serverName[] = "192.168.1.100"; // zoomkat's test web page server
+//char serverName[] = "localhost"; // zoomkat's test web page server
+IPAddress serverName(192, 168, 1, 100); // numeric IP for Google (no DNS)
 EthernetClient client;
 
 //////////////////////
@@ -40,13 +41,13 @@ void setup() {
 
 void loop() {
   // check for serial input
-  for (byte thisByte = 0; thisByte < 4; thisByte++) {
-    // print the value of each byte of the IP address:
-    Serial.print(Ethernet.localIP()[thisByte], DEC);
-    Serial.print(".");
-  }
-  Serial.println();
-  delay(100);
+  //for (byte thisByte = 0; thisByte < 4; thisByte++) {
+  // print the value of each byte of the IP address:
+  //Serial.print(Ethernet.localIP()[thisByte], DEC);
+  //Serial.print(".");
+  //}
+  //Serial.println();
+  //delay(100);
   if (Serial.available() > 0) //if something in serial buffer
   {
     byte inChar; // sets inChar as a byte
@@ -62,9 +63,11 @@ void loop() {
 
 void sendGET() //client function to send/receive GET request data.
 {
+  String data = "?l1=11111&t1=11111&c1=11111&h1=11111";
   if (client.connect(serverName, 80)) {  //starts client connection, checks for connection
     Serial.println("connected");
-    client.println("GET /~shb/arduino.txt HTTP/1.0"); //download text
+    client.println("GET /GHinsertdata.php?l1=222&t1=2222&c1=222&h1=222 HTTP/1.1"); //download text   
+    client.println("Connection: close");
     client.println(); //end of get request
   }
   else {
