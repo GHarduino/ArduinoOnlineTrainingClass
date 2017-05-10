@@ -1,21 +1,21 @@
 
-
 #include<SoftwareSerial.h>
 #include <dht.h>
 #include <LiquidCrystal_I2C.h>
-//LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //16*4  
+//LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //16*4
 LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //20*4
-#define DHT22_PIN 8
+#define DHT22_PIN 4
 #define ldr A0
-#define lm35 A1
-#define led1 2
-#define led2 3
-#define led3 4
-#define led4 5
-#define led5 6
+#define MQ2 A1
+#define IRtransmitter 3
+#define IRreceiver 2
+#define Buzzer 5
+#define led1 8
+#define led2 9
+#define led3 10
 
 dht DHT;
-SoftwareSerial BlueTooth(11, 12);       //TXD11  RXD12
+SoftwareSerial BlueTooth(6, 7);       //TXD11  RXD12
 int status = 1;
 int show = 0;
 struct
@@ -33,13 +33,7 @@ struct
 
 void setup() {
   Serial.begin(9600);
-  pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
-  pinMode(led3, OUTPUT);
-  pinMode(led4, OUTPUT);
-  pinMode(led5, OUTPUT);
-
-  lcd.begin(16, 2);
+  lcd.begin(20, 4);
   lcd.backlight();
   lcd.setCursor(0, 0);
   lcd.print("Weather Station");
@@ -53,8 +47,6 @@ void setup() {
 
 
 void loop() {
-
-
   Serial.println("Loop Started");
   funReadSensor();
   delay(1000);
@@ -71,18 +63,20 @@ void loop() {
 
 void funReadSensor()
 {
-  float temp;
+  float temp = 0;
   float temp1;
   float light;
   float humidity;
-  
+  float gas;
+
 
 
   //Serial.print("Reading Temp");
-  temp = analogRead(lm35);
-  temp = temp * 0.48828125;
+  //temp = analogRead(lm35);
+  //temp = temp * 0.48828125;
 
   light = analogRead(ldr);
+  gas = analogRead(MQ2);
 
   int chk = DHT.read22(DHT22_PIN);
   switch (chk)
@@ -123,7 +117,7 @@ void funReadSensor()
   Serial.print("Light");
   Serial.print(",\t");
   Serial.print(",\t");
-  Serial.print("Temp(LM35)");
+  Serial.print("GAS");
   Serial.print(",\t");
   Serial.print("Temp(DHT22)");
   Serial.print(",\t");
@@ -133,7 +127,7 @@ void funReadSensor()
   Serial.print(light);
   Serial.print(",\t");
   Serial.print(",\t");
-  Serial.print(temp);
+  Serial.print(gas);
   Serial.print(",\t");
   Serial.print(",\t");
   Serial.print(temp1);
@@ -149,42 +143,43 @@ void funReadSensor()
   int T = temp;
   int T1 = temp1;
   int H = humidity;
+  int G = gas;
 
 
   if (L > 800)
   {
-    digitalWrite(led1, LOW);
+    //digitalWrite(led1, LOW);
   }
   else
   {
-    digitalWrite(led1, HIGH);
+    //digitalWrite(led1, HIGH);
   }
   if (T1 < 25)
   {
-    digitalWrite(led2, HIGH);
-    digitalWrite(led3, LOW);
+    //digitalWrite(led2, HIGH);
+    //digitalWrite(led3, LOW);
   }
   else
   {
-    digitalWrite(led3, HIGH);
-    digitalWrite(led2, LOW);
+    //digitalWrite(led3, HIGH);
+    //digitalWrite(led2, LOW);
   }
   if (H > 60)
   {
-    digitalWrite(led4, HIGH);
+    //digitalWrite(led4, HIGH);
   }
   else
   {
-    digitalWrite(led4, LOW);
+    //digitalWrite(led4, LOW);
   }
-  //int CO = co;
 
-  String l, t, t1, h, c;
+
+  String l, t, t1, h, g;
   l = String(L);
   t = String(T);
   t1 = String(T1);
   h = String(H);
-  //c = String(CO);
+  g = String(G);
 
 
   Serial.print(L);
@@ -196,55 +191,28 @@ void funReadSensor()
   Serial.print(T1);
   Serial.print(",\t");
   Serial.print(",\t");
-
   Serial.println(H);
-  BlueTooth.println(l + '@' + t + '@' + t1 + '@' + h );
-  Serial.println(l + '@' + t + '@' + t1 + '@' + h );
-
-  if (status == 1)
-  {
-    digitalWrite(led5, HIGH);
-    status = 0;
-  }
-  else
-  {
-    digitalWrite(led5, LOW);
-    status = 1;
-  }
-  show++;
+  
+  BlueTooth.println(t1+'@'+t1 + '@' + h + '@' + l + '@' + g );
+  //Serial.println(l + '@' + g + '@' + t1 + '@' + h );
+  Serial.println(t1 + '@' + h + '@' + l + '@' + g ); 
 
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Weather Station  ");
+  lcd.print("Temp ");
+  lcd.print(t1);
   lcd.setCursor(0, 1);
+  lcd.print("Humidity  ");
+  lcd.print(h);
+  lcd.setCursor(0, 2);
+  lcd.print("Light  ");
+  lcd.print(l);
+  lcd.setCursor(0, 3);
+  lcd.print("GAS  ");
+  lcd.print(g);
 
-  if (show == 1)
-  {
-    lcd.print("Light  ");
-    lcd.print(l);
-  }
-  else if (show == 2)
-  {
-    lcd.print("Temp(LM35)  ");
-    lcd.print(t);
-  }
-  else if (show == 3)
-  {
-    lcd.print("Temp(DHT22)  ");
-    lcd.print(t1);
-  }
-  else if (show == 4)
-  {
-    show = 0;
-    lcd.print("Humidity  ");
-    lcd.print(h);
-  }
-  else
-  {
 
-    lcd.print("Error!");
 
-  }
 
 }
 
