@@ -3,11 +3,17 @@
    temperature and humidity min and max limit checking
    by Dr. Aung Win Htut
 */
-#include<SoftwareSerial.h>
-#include <dht.h>
-#include <LiquidCrystal_I2C.h>
+#include<SoftwareSerial.h>  //for bluetooth
+#include <dht.h> //for DHT22
+
+
+#include <LiquidCrystal_I2C.h> 
 //LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //16*4
 LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //20*4
+
+
+
+//pin configuration
 #define DHT22_PIN 4
 #define ldr A0
 #define MQ2 A1
@@ -15,23 +21,29 @@ LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //20*4
 #define IRreceiver 2
 #define Buzzer 11
 #define led1 8
-#define led2 9
-#define led3 10
-#define maxgas 200
-#define mingas 20
+#define Relay1 10
+#define Relay2 9
+
+//Config values
+static int maxgas=200;
+static int mingas= 20;
 
 
+//flags and key parameters
 static int sgas = 0;
 static int stemperature = 3; // 1-very cold <10  2-cold <20  3-normal 20-30 4-hot 30-35 5-very hot >35
 static int shumidity = 3; //  1-very humid >60  2-humid 50-60 3-normal 40-50 4-dry 40-30 5-very dry <30
 static int tflag[5] = {0, 0, 0, 0, 0}; //flag =3 trigger
 static int hflag[5] = {0, 0, 0, 0, 0}; //flag =3 trigger
+static int status = 1;
+static int show = 0;
 
-
+//creating dht and blueooth objects
 dht DHT;
 SoftwareSerial BlueTooth(6, 7);       //TXD11  RXD12
-int status = 1;
-int show = 0;
+
+
+//creating structure for dht22
 struct
 {
   uint32_t total;
@@ -45,6 +57,7 @@ struct
 } stat = { 0, 0, 0, 0, 0, 0, 0, 0};
 
 
+//Setting up for the very first time and once only
 void setup() {
   Serial.begin(9600);
   lcd.begin(20, 4);
@@ -53,20 +66,23 @@ void setup() {
   lcd.print("Weather Station");
   lcd.setCursor(0, 1);
   lcd.print("Welcome!");
+  //pinmode settings
   pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
-  pinMode(led3, OUTPUT);
+  pinMode(Relay1, OUTPUT);
+  pinMode(Relay2, OUTPUT);
   pinMode(Buzzer, OUTPUT);
 
-  Serial.println("Goodnight moon!");
+  Serial.println("Hello,Green Hackers!"); //$
   BlueTooth.begin(9600);
   delay(500);
 }
 
-
+////////////////////////////////////////
+//Main Loop Start Here
 void loop() {
-  Serial.println("Loop Started");
-  funReadSensor();
+  Serial.println("Loop Started");//$
+  
+  funReadSensor(); //calling fun to read sensor values
   delay(1000);
 
   if (BlueTooth.available()) {
@@ -75,32 +91,41 @@ void loop() {
   if (Serial.available() > 0)
   {
     int incomingByte = Serial.read();
-
   }
 }
+//Main Loop End Here
+//////////////////////////////////////////
 
+
+//////////////////////////////////////////////
+//Function for Reading Sensor value start here
 void funReadSensor()
 {
+  //sensor variables
   float temp = 0;
   float temp1;
   float light;
   float humidity;
   float gas;
 
-
-
+  //if you want to read lm35 temperature sensor
   //Serial.print("Reading Temp");
   //temp = analogRead(lm35);
   //temp = temp * 0.48828125;
 
+  //Reading Light value (10kOhm pull up)
   light = analogRead(ldr);
-  gas = analogRead(MQ2);
 
+  //Reading Gas vlue (10kOhm pull up)
+  gas = analogRead(MQ2);
   if ((gas > mingas) && (gas < maxgas))
   {
     sgas = gas;
   }
 
+  //Read DHT sensor to measure Temperature and Humidity
+  //(10kOhm pull down)
+  //checking error!
   int chk = DHT.read22(DHT22_PIN);
   switch (chk)
   {
@@ -133,12 +158,11 @@ void funReadSensor()
       Serial.println("Unknown error,\t");
       break;
   }
-
+  //if no error read humidity and temperature
   humidity = DHT.humidity;
   temp1 = DHT.temperature;
 
-
-
+  //sending to serial port //$
   Serial.print("Light");
   Serial.print(",\t");
   Serial.print(",\t");
@@ -146,9 +170,7 @@ void funReadSensor()
   Serial.print(",\t");
   Serial.print("Temp(DHT22)");
   Serial.print(",\t");
-  Serial.println("Humidity");
-  //Serial.print(",\t");
-  //Serial.println("CO");
+  Serial.println("Humidity"); 
   Serial.print(light);
   Serial.print(",\t");
   Serial.print(",\t");
@@ -158,22 +180,19 @@ void funReadSensor()
   Serial.print(temp1);
   Serial.print(",\t");
   Serial.print(",\t");
-  Serial.print(humidity);
-  //Serial.print(",\t");
-  //Serial.print(",\t");
-  //Serial.println(co);
+  Serial.print(humidity);  
   Serial.println("");
+  //sending serial data end here
 
+  //copying measured variables
   int L = light;
   int T = temp;
   int T1 = temp1;
   int H = humidity;
   int G = sgas;
-
-
-
-
-
+  
+  //Checking fuzzy levels for temperature
+  //Call funShowFuzzyResult onlyif the result actually change 3 times
   if (T1 < 10)
   {
     for (int i = 1; i < 5; i++)
@@ -184,7 +203,7 @@ void funReadSensor()
     if (tflag[0] == 3)
     {
       stemperature = 1;
-      funShowResult();
+      funShowFuzzyResult();
     }
   }
   else if ((T1 >= 10) && (T1 < 20))
@@ -198,7 +217,7 @@ void funReadSensor()
     if (tflag[1] == 3)
     {
       stemperature = 2;
-      funShowResult();
+      funShowFuzzyResult();
     }
   }
   else if ((T1 >= 20) && (T1 < 30))
@@ -212,7 +231,7 @@ void funReadSensor()
     if (tflag[2] == 3)
     {
       stemperature = 3;
-      funShowResult();
+      funShowFuzzyResult();
     }
   }
   else if ((T1 >= 30) && (T1 <= 35))
@@ -226,7 +245,7 @@ void funReadSensor()
     if (tflag[3] == 3)
     {
       stemperature = 4;
-      funShowResult();
+      funShowFuzzyResult();
     }
   }
   else if (T1 > 35)
@@ -240,11 +259,11 @@ void funReadSensor()
     if (tflag[4] == 3)
     {
       stemperature = 5;
-      funShowResult();
+      funShowFuzzyResult();
     }
   }
 
-
+  //Checking fuzzy levels for humidity
   if (H > 60)
   {
     for (int i = 1; i < 5; i++)
@@ -255,7 +274,7 @@ void funReadSensor()
     if (hflag[0] == 3)
     {
       shumidity = 1;
-      funShowResult();
+      funShowFuzzyResult();
     }
   }
   else if ((H >= 50) && (H < 60))
@@ -269,7 +288,7 @@ void funReadSensor()
     if (hflag[1] == 3)
     {
       shumidity = 2;
-      funShowResult();
+      funShowFuzzyResult();
     }
   }
   else if ((H >= 40) && (H < 50))
@@ -283,7 +302,7 @@ void funReadSensor()
     if (hflag[2] == 3)
     {
       shumidity = 3;
-      funShowResult();
+      funShowFuzzyResult();
     }
   }
   else if ((H >= 30) && (H <= 40))
@@ -297,7 +316,7 @@ void funReadSensor()
     if (hflag[3] == 3)
     {
       shumidity = 4;
-      funShowResult();
+      funShowFuzzyResult();
     }
   }
   else if (H < 30)
@@ -311,25 +330,26 @@ void funReadSensor()
     if (hflag[4] == 3)
     {
       shumidity = 5;
-      funShowResult();
+      funShowFuzzyResult();
     }
   }
 
-
-
+  //Checking light value whether dark and switch led on buzzer on
+  //Call funShowFuzzyResult onlyif the result actually change 3 times
   if (L > 400)
   {
     digitalWrite(led1, LOW);
   }
   else
   {
-    funBuzzerLed();
+    funBuzzerLed(); //calling buzzer on led on function
   }
 
+  //Must change int to string to send by bluetooth and serial
   String l, t, t1, h, g;
   String st,sh;
-  //change integer to string
-  //to send by serial
+  
+  //change integer to string  
   l = String(L);
   t = String(T);
   t1 = String(T1);
@@ -338,6 +358,7 @@ void funReadSensor()
   st = String(stemperature);
   sh = String(shumidity);
 
+  //Sending Serial again //$
   Serial.print(L);
   Serial.print(",\t");
   Serial.print(",\t");
@@ -348,11 +369,14 @@ void funReadSensor()
   Serial.print(",\t");
   Serial.print(",\t");
   Serial.println(H);
-
-  BlueTooth.println(t1 + '@' + t1 + '@' + h + '@' + l + '@' + g + '@' + st + '@' + sh );
-  //Serial.println(l + '@' + g + '@' + t1 + '@' + h );
   Serial.println(t1 + '@' + h + '@' + l + '@' + g );
+  //Sending Serial End here
 
+  //Sending to bluetooth , separating by special @ char
+  BlueTooth.println(t1 + '@' + t1 + '@' + h + '@' + l + '@' + g + '@' + st + '@' + sh );
+  //Sending to bluetooth end here
+
+  //LCD print out start here
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Temp ");
@@ -366,34 +390,39 @@ void funReadSensor()
   lcd.setCursor(0, 3);
   lcd.print("GAS  ");
   lcd.print(g);
+  //LCD print out end here
 }
+//Function for Reading Sensor value end here
+////////////////////////////////////////////////
 
-
-
-void funShowResult()
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Showing FUZZY results on LCD
+void funShowFuzzyResult()
 {
   lcd.clear();
   switch (stemperature)
   {
     case 1: lcd.setCursor(0, 0); lcd.print("Temperature is Very Cold"); lcd.setCursor(0, 1); lcd.print("Fuzzy 1"); break;
-    case 2: lcd.setCursor(0, 0); lcd.print("Temperature is Cold"); lcd.setCursor(0, 1); lcd.print("Fuzzy 2"); break; break;
-    case 3: lcd.setCursor(0, 0); lcd.print("Temperature is Normal"); lcd.setCursor(0, 1); lcd.print("Fuzzy 3"); break; break;
-    case 4: lcd.setCursor(0, 0); lcd.print("Temperature is Hot"); lcd.setCursor(0, 1); lcd.print("Fuzzy 4"); break; break;
-    case 5: lcd.setCursor(0, 0); lcd.print("Temperature is Very Hot"); lcd.setCursor(0, 1); lcd.print("Fuzzy 5"); break; break;
+    case 2: lcd.setCursor(0, 0); lcd.print("Temperature is Cold");      lcd.setCursor(0, 1); lcd.print("Fuzzy 2"); break; break;
+    case 3: lcd.setCursor(0, 0); lcd.print("Temperature is Normal");    lcd.setCursor(0, 1); lcd.print("Fuzzy 3"); break; break;
+    case 4: lcd.setCursor(0, 0); lcd.print("Temperature is Hot");       lcd.setCursor(0, 1); lcd.print("Fuzzy 4"); break; break;
+    case 5: lcd.setCursor(0, 0); lcd.print("Temperature is Very Hot");  lcd.setCursor(0, 1); lcd.print("Fuzzy 5"); break; break;
   }
   switch (shumidity)
   {
-    case 1: lcd.setCursor(0, 2); lcd.print("Humidity is Very Humid"); lcd.setCursor(0, 3); lcd.print("Fuzzy 1"); break;
-    case 2: lcd.setCursor(0, 2); lcd.print("Humidity is Humid"); lcd.setCursor(0, 3); lcd.print("Fuzzy 2"); break; break;
-    case 3: lcd.setCursor(0, 2); lcd.print("Humidity is Normal"); lcd.setCursor(0, 3); lcd.print("Fuzzy 3"); break; break;
-    case 4: lcd.setCursor(0, 2); lcd.print("Humidity is Dry"); lcd.setCursor(0, 3); lcd.print("Fuzzy 4"); break; break;
-    case 5: lcd.setCursor(0, 2); lcd.print("Humidity is Very Dry"); lcd.setCursor(0, 3); lcd.print("Fuzzy 5"); break; break;
+    case 1: lcd.setCursor(0, 2); lcd.print("Humidity is Very Humid");   lcd.setCursor(0, 3); lcd.print("Fuzzy 1"); break;
+    case 2: lcd.setCursor(0, 2); lcd.print("Humidity is Humid");        lcd.setCursor(0, 3); lcd.print("Fuzzy 2"); break; break;
+    case 3: lcd.setCursor(0, 2); lcd.print("Humidity is Normal");       lcd.setCursor(0, 3); lcd.print("Fuzzy 3"); break; break;
+    case 4: lcd.setCursor(0, 2); lcd.print("Humidity is Dry");          lcd.setCursor(0, 3); lcd.print("Fuzzy 4"); break; break;
+    case 5: lcd.setCursor(0, 2); lcd.print("Humidity is Very Dry");     lcd.setCursor(0, 3); lcd.print("Fuzzy 5"); break; break;
   }
   funBuzzerLed();
   delay(5000);
-
 }
+//function End here
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//function for buzzer on led on
 void funBuzzerLed()
 {
   digitalWrite(led1, HIGH);
@@ -402,4 +431,7 @@ void funBuzzerLed()
   digitalWrite(Buzzer, LOW);
   delay(100);
 }
+//function end here
+
+
 
