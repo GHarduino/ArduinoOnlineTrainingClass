@@ -9,37 +9,38 @@
 #include <LiquidCrystal_I2C.h>
 //for ethernet shield
 #include <SPI.h>
-#include <Ethernet.h>
+//#include <Ethernet.h>
 
-
-byte mac[] = {
+/*
+  byte mac[] = {
   0x90, 0xA2, 0xDA, 0x0F, 0x3A, 0xDC
-};
-IPAddress server(192, 168, 1, 100);
-IPAddress ip(192, 168, 1, 105);
-EthernetClient client;
-
+  };
+  IPAddress server(192, 168, 1, 100);
+  IPAddress ip(192, 168, 1, 5);
+  EthernetClient client;
+*/
 //LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //16*4
-LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //20*4
-
+LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4 , 5, 6, 7, 3, POSITIVE); //20*4
+//LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 21, 20, 6, 7, 3, POSITIVE); //20*4
+//LiquidCrystal_I2C lcd(0x27, 20,4);
 
 
 
 //pin configuration
-#define DHT22_PIN 4
-#define ldr A0
-#define MQ2 A1
-//#define IRtransmitter 3
+#define DHT22_PIN 12   //pull down 10k digital
+#define ldr A0        //pull up 10k analog
+#define MQ2 A1        //pull up 10k analog
+#define IRtransmitter 9
 #define IRreceiver 2
 #define Buzzer 11
 #define led1 8
-#define Relay1 10
-#define Relay2 9
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-                                                            
+//#define Relay1 9
+#define Relay2 10
+
+
 //Config values
-#define maxgas   200
-#define mingas   20
+#define maxgas   2000
+#define mingas   0
 
 
 //flags and key parameters
@@ -49,20 +50,16 @@ static int shumidity = 3; //  5-very humid >60  4-humid 50-60 3-normal 40-50 2-d
 static int tflag[5] = {0, 0, 0, 0, 0}; //flag =3 trigger
 static int hflag[5] = {0, 0, 0, 0, 0}; //flag =3 trigger
 
-
-
-
+static String l, t, t1, h, g;
+static String st, sh;
 
 //IR object declare
 IRsend irsend;
-
 
 //creating dht and blueooth objects
 dht DHT;
 SoftwareSerial BlueTooth(6, 7);       //TXD11  RXD12
 
-
-/*
 //creating structure for dht22
 struct
 {
@@ -75,42 +72,47 @@ struct
   uint32_t ack_h;
   uint32_t unknown;
 } stat = { 0, 0, 0, 0, 0, 0, 0, 0};
-*/
 
 //Setting up for the very first time and once only
 void setup() {
   Serial.begin(9600);
   lcd.begin(20, 4);
   lcd.backlight();
-  lcd.setCursor(0, 0);
-  lcd.print("Weather Station");
   lcd.setCursor(0, 1);
-  lcd.print("Welcome!");
+  lcd.print("     Welcome to     ");
+  lcd.setCursor(0, 2);
+  lcd.print("   Control Center   ");
   //pinmode settings
   pinMode(led1, OUTPUT);
-  pinMode(Relay1, OUTPUT);
+  //pinMode(Relay1, OUTPUT);
   pinMode(Relay2, OUTPUT);
   pinMode(Buzzer, OUTPUT);
 
   Serial.println("Hello,Green Hackers!"); //$
   BlueTooth.begin(9600);
-
-  if (Ethernet.begin(mac) == 0) {
+  //Serial.println("try to connect router...");
+  /*
+    //Ethernet.begin(mac, ip);
+    //Serial.println(Ethernet.localIP());
+    //Serial.println("connecting...");
+    if (Ethernet.begin(mac) == 0) {
     Serial.println("Failed to configure Ethernet using DHCP");
     // no point in carrying on, so do nothing forevermore:
     // try to congifure using IP address instead of DHCP:
     Ethernet.begin(mac, ip);
-  }
-  Serial.println("connecting...");
+    }
+    Serial.println(Ethernet.localIP());
+    Serial.println("connecting...");
 
-  // if you get a connection, report back via serial:
-  if (client.connect(server, 80)) {
+    // if you get a connection, report back via serial:
+    if (client.connect(server, 80)) {
     Serial.println("connected");
-  }
-  else
-  {
+    }
+    else
+    {
     Serial.println("cannot connect");
-  }
+    }
+  */
   delay(500);
 }
 
@@ -155,15 +157,18 @@ void funReadSensor()
 
   //Reading Gas vlue (10kOhm pull up)
   gas = analogRead(MQ2);
+  Serial.println(gas);
+
   if ((gas > mingas) && (gas < maxgas))
   {
     sgas = gas;
   }
+  Serial.println(sgas);
 
   //Read DHT sensor to measure Temperature and Humidity
   //(10kOhm pull down)
   //checking error!
-  /*
+
   int chk = DHT.read22(DHT22_PIN);
   switch (chk)
   {
@@ -196,11 +201,15 @@ void funReadSensor()
       Serial.println("Unknown error,\t");
       break;
   }
-  */
+
   //if no error read humidity and temperature
   humidity = DHT.humidity;
   temp1 = DHT.temperature;
-
+  Serial.print("temp");
+  Serial.println(temp1);
+  Serial.print("humidity");
+  Serial.println(humidity);
+  delay(1000);
   //sending to serial port //$
   Serial.print("Light");
   Serial.print(",\t");
@@ -312,7 +321,7 @@ void funReadSensor()
     hflag[0]++;
     if (hflag[0] == 3)
     {
-      shumidity = 5;
+      shumidity = 1;
       funShowFuzzyResult();
     }
   }
@@ -326,7 +335,7 @@ void funReadSensor()
     hflag[1]++;
     if (hflag[1] == 3)
     {
-      shumidity = 4;
+      shumidity = 2;
       funShowFuzzyResult();
     }
   }
@@ -354,7 +363,7 @@ void funReadSensor()
     hflag[3]++;
     if (hflag[3] == 3)
     {
-      shumidity = 2;
+      shumidity = 4;
       funShowFuzzyResult();
     }
   }
@@ -368,7 +377,7 @@ void funReadSensor()
     hflag[4]++;
     if (hflag[4] == 3)
     {
-      shumidity = 1;
+      shumidity = 5;
       funShowFuzzyResult();
     }
   }
@@ -385,8 +394,7 @@ void funReadSensor()
   }
 
   //Must change int to string to send by bluetooth and serial
-  String l, t, t1, h, g;
-  String st, sh;
+
 
   //change integer to string
   l = String(L);
@@ -418,16 +426,16 @@ void funReadSensor()
   //LCD print out start here
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Temp ");
+  lcd.print("Temp       ");
   lcd.print(t1);
   lcd.setCursor(0, 1);
-  lcd.print("Humidity  ");
+  lcd.print("Humidity   ");
   lcd.print(h);
   lcd.setCursor(0, 2);
-  lcd.print("Light  ");
+  lcd.print("Light      ");
   lcd.print(l);
   lcd.setCursor(0, 3);
-  lcd.print("GAS  ");
+  lcd.print("GAS        ");
   lcd.print(g);
   //LCD print out end here
 }
@@ -441,20 +449,23 @@ void funShowFuzzyResult()
   lcd.clear();
   switch (stemperature)
   {
-    case 1: lcd.setCursor(0, 0); lcd.print("Temperature is Very Cold"); lcd.setCursor(0, 1); lcd.print("Fuzzy 1"); break;
-    case 2: lcd.setCursor(0, 0); lcd.print("Temperature is Cold");      lcd.setCursor(0, 1); lcd.print("Fuzzy 2"); break; break;
-    case 3: lcd.setCursor(0, 0); lcd.print("Temperature is Normal");    lcd.setCursor(0, 1); lcd.print("Fuzzy 3"); break; break;
-    case 4: lcd.setCursor(0, 0); lcd.print("Temperature is Hot");       lcd.setCursor(0, 1); lcd.print("Fuzzy 4"); break; break;
-    case 5: lcd.setCursor(0, 0); lcd.print("Temperature is Very Hot");  lcd.setCursor(0, 1); lcd.print("Fuzzy 5"); break; break;
+    case 1: lcd.setCursor(0, 0); lcd.print("Temp:     Very Cold");
+      lcd.setCursor(0, 1); lcd.print("Fuzzy 1"); break;
+    case 2: lcd.setCursor(0, 0); lcd.print("Temp:     Cold");       break;
+    case 3: lcd.setCursor(0, 0); lcd.print("Temp:     Normal");     break;
+    case 4: lcd.setCursor(0, 0); lcd.print("Temp:     Hot");        break;
+    case 5: lcd.setCursor(0, 0); lcd.print("Temp:     Very Hot");   break;
   }
+  lcd.setCursor(0, 1); lcd.print(t1); lcd.print(" *C");
   switch (shumidity)
   {
-    case 1: lcd.setCursor(0, 2); lcd.print("Humidity is Very Humid");   lcd.setCursor(0, 3); lcd.print("Fuzzy 1"); break;
-    case 2: lcd.setCursor(0, 2); lcd.print("Humidity is Humid");        lcd.setCursor(0, 3); lcd.print("Fuzzy 2"); break; break;
-    case 3: lcd.setCursor(0, 2); lcd.print("Humidity is Normal");       lcd.setCursor(0, 3); lcd.print("Fuzzy 3"); break; break;
-    case 4: lcd.setCursor(0, 2); lcd.print("Humidity is Dry");          lcd.setCursor(0, 3); lcd.print("Fuzzy 4"); break; break;
-    case 5: lcd.setCursor(0, 2); lcd.print("Humidity is Very Dry");     lcd.setCursor(0, 3); lcd.print("Fuzzy 5"); break; break;
+    case 1: lcd.setCursor(0, 2); lcd.print("Humidity: Very Humid");    break;
+    case 2: lcd.setCursor(0, 2); lcd.print("Humidity: Humid");         break;
+    case 3: lcd.setCursor(0, 2); lcd.print("Humidity: Normal");        break;
+    case 4: lcd.setCursor(0, 2); lcd.print("Humidity: Dry");           break;
+    case 5: lcd.setCursor(0, 2); lcd.print("Humidity: Very Dry");      break;
   }
+  lcd.setCursor(0, 3); lcd.print(h); lcd.print(" %");
   funFuzzyControlAircon(stemperature + shumidity);
   funBuzzerLed();
 
@@ -471,6 +482,7 @@ void funBuzzerLed()
   digitalWrite(Buzzer, HIGH);
   delay(1000);
   digitalWrite(Buzzer, LOW);
+  digitalWrite(led1, LOW);
   delay(100);
 }
 //function end here
@@ -494,7 +506,10 @@ void funFuzzyControlAircon(int iFuzzy)
   {
     for (int i = 0; i < iCount; i++)
     {
-      irsend.sendRaw(irSignal2, sizeof(irSignal2) / sizeof(irSignal2[0]), khz); //Note the approach used to automatically calculate the size of the array.
+      //need to down temp more T
+      irsend.sendRaw(irSignal2, sizeof(irSignal2) / sizeof(irSignal2[0]), khz);
+      delay(300);
+      irsend.sendRaw(irDown, sizeof(irDown) / sizeof(irDown[0]), khz);
       delay(300);
     }
   }
@@ -503,7 +518,10 @@ void funFuzzyControlAircon(int iFuzzy)
     iCount = abs(iCount);
     for (int i = 0; i < iCount; i++)
     {
-      irsend.sendRaw(irSignal1, sizeof(irSignal1) / sizeof(irSignal1[0]), khz); //Note the approach used to automatically calculate the size of the array.
+      //need to up temp
+      irsend.sendRaw(irSignal1, sizeof(irSignal1) / sizeof(irSignal1[0]), khz);
+      delay(300);
+      irsend.sendRaw(irUp, sizeof(irUp) / sizeof(irUp[0]), khz);
       delay(300);
     }
   }

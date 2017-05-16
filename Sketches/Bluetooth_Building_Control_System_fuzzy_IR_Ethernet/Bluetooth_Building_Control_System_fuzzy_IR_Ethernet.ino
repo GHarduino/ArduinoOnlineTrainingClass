@@ -9,15 +9,7 @@
 #include <LiquidCrystal_I2C.h>
 //for ethernet shield
 #include <SPI.h>
-#include <Ethernet.h>
 
-
-byte mac[] = {
-  0x90, 0xA2, 0xDA, 0x0F, 0x3A, 0xDC
-};
-IPAddress server(192, 168, 1, 100);
-IPAddress ip(192, 168, 1, 105);
-EthernetClient client;
 
 //LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //16*4
 LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //20*4
@@ -61,7 +53,7 @@ dht DHT;
 SoftwareSerial BlueTooth(6, 7);       //TXD11  RXD12
 
 
-/*
+
 //creating structure for dht22
 struct
 {
@@ -74,7 +66,7 @@ struct
   uint32_t ack_h;
   uint32_t unknown;
 } stat = { 0, 0, 0, 0, 0, 0, 0, 0};
-*/
+
 
 //Setting up for the very first time and once only
 void setup() {
@@ -93,23 +85,24 @@ void setup() {
 
   Serial.println("Hello,Green Hackers!"); //$
   BlueTooth.begin(9600);
+  /*
+    if (Ethernet.begin(mac) == 0) {
+      Serial.println("Failed to configure Ethernet using DHCP");
+      // no point in carrying on, so do nothing forevermore:
+      // try to congifure using IP address instead of DHCP:
+      Ethernet.begin(mac, ip);
+    }
+    Serial.println("connecting...");
 
-  if (Ethernet.begin(mac) == 0) {
-    Serial.println("Failed to configure Ethernet using DHCP");
-    // no point in carrying on, so do nothing forevermore:
-    // try to congifure using IP address instead of DHCP:
-    Ethernet.begin(mac, ip);
-  }
-  Serial.println("connecting...");
-
-  // if you get a connection, report back via serial:
-  if (client.connect(server, 80)) {
-    Serial.println("connected");
-  }
-  else
-  {
-    Serial.println("cannot connect");
-  }
+    // if you get a connection, report back via serial:
+    if (client.connect(server, 80)) {
+      Serial.println("connected");
+    }
+    else
+    {
+      Serial.println("cannot connect");
+    }
+  */
   delay(500);
 }
 
@@ -162,7 +155,6 @@ void funReadSensor()
   //Read DHT sensor to measure Temperature and Humidity
   //(10kOhm pull down)
   //checking error!
-  /*
   int chk = DHT.read22(DHT22_PIN);
   switch (chk)
   {
@@ -195,7 +187,7 @@ void funReadSensor()
       Serial.println("Unknown error,\t");
       break;
   }
-  */
+
   //if no error read humidity and temperature
   humidity = DHT.humidity;
   temp1 = DHT.temperature;
