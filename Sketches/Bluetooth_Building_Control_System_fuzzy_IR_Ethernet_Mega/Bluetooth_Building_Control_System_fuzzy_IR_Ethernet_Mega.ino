@@ -34,7 +34,7 @@ LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4 , 5, 6, 7, 3, POSITIVE); //20*4
 #define IRreceiver 2
 #define Buzzer 11
 #define led1 8
-//#define Relay1 9
+#define Relay1 3
 #define Relay2 10
 
 
@@ -84,7 +84,7 @@ void setup() {
   lcd.print("   Control Center   ");
   //pinmode settings
   pinMode(led1, OUTPUT);
-  //pinMode(Relay1, OUTPUT);
+  pinMode(Relay1, OUTPUT);
   pinMode(Relay2, OUTPUT);
   pinMode(Buzzer, OUTPUT);
 
@@ -312,7 +312,7 @@ void funReadSensor()
   }
 
   //Checking fuzzy levels for humidity
-  if (H > 60)
+  if (H > 70)
   {
     for (int i = 1; i < 5; i++)
     {
@@ -325,7 +325,7 @@ void funReadSensor()
       funShowFuzzyResult();
     }
   }
-  else if ((H >= 50) && (H < 60))
+  else if ((H >= 60) && (H < 70))
   {
     hflag[0] = 0;
     hflag[2] = 0;
@@ -339,7 +339,7 @@ void funReadSensor()
       funShowFuzzyResult();
     }
   }
-  else if ((H >= 40) && (H < 50))
+  else if ((H >= 40) && (H < 60))
   {
     hflag[0] = 0;
     hflag[1] = 0;
@@ -449,8 +449,7 @@ void funShowFuzzyResult()
   lcd.clear();
   switch (stemperature)
   {
-    case 1: lcd.setCursor(0, 0); lcd.print("Temp:     Very Cold");
-      lcd.setCursor(0, 1); lcd.print("Fuzzy 1"); break;
+    case 1: lcd.setCursor(0, 0); lcd.print("Temp:     Very Cold");  break;     
     case 2: lcd.setCursor(0, 0); lcd.print("Temp:     Cold");       break;
     case 3: lcd.setCursor(0, 0); lcd.print("Temp:     Normal");     break;
     case 4: lcd.setCursor(0, 0); lcd.print("Temp:     Hot");        break;
@@ -459,12 +458,25 @@ void funShowFuzzyResult()
   lcd.setCursor(0, 1); lcd.print(t1); lcd.print(" *C");
   switch (shumidity)
   {
-    case 1: lcd.setCursor(0, 2); lcd.print("Humidity: Very Humid");    break;
-    case 2: lcd.setCursor(0, 2); lcd.print("Humidity: Humid");         break;
-    case 3: lcd.setCursor(0, 2); lcd.print("Humidity: Normal");        break;
-    case 4: lcd.setCursor(0, 2); lcd.print("Humidity: Dry");           break;
-    case 5: lcd.setCursor(0, 2); lcd.print("Humidity: Very Dry");      break;
+    case 1: lcd.setCursor(0, 2); lcd.print("Humidity: Very Humid");   digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH); break;
+    case 2: lcd.setCursor(0, 2); lcd.print("Humidity: Humid");        digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,LOW); break;
+    case 3: lcd.setCursor(0, 2); lcd.print("Humidity: Normal");       digitalWrite(Relay2,LOW);  digitalWrite(Relay1,LOW); break;
+    case 4: lcd.setCursor(0, 2); lcd.print("Humidity: Dry");          digitalWrite(Relay2,LOW);  digitalWrite(Relay1,LOW); break;
+    case 5: lcd.setCursor(0, 2); lcd.print("Humidity: Very Dry");     digitalWrite(Relay2,LOW);  digitalWrite(Relay1,LOW); break;
   }
+
+  /*
+  switch(stemperature+(5-shumidity))
+  {
+    case 5:   Serial.println("case 7"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);   break;
+    case 6:   Serial.println("case 7"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);   break;
+    case 7:   Serial.println("case 7"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);   break;
+    case 8:   Serial.println("case 8"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);  break;
+    case 9:   Serial.println("case 9"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);  break;
+    case 10:  Serial.println("case 10"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);  break;
+    default:  Serial.println("case 2-4"); digitalWrite(Relay2,LOW);   digitalWrite(Relay1,LOW);  break;
+  }
+  */
   lcd.setCursor(0, 3); lcd.print(h); lcd.print(" %");
   funFuzzyControlAircon(stemperature + shumidity);
   funBuzzerLed();
