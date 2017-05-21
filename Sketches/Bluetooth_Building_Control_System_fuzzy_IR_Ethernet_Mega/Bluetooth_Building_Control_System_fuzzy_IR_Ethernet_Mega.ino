@@ -36,6 +36,7 @@ LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4 , 5, 6, 7, 3, POSITIVE); //20*4
 #define led1 8
 #define Relay1 3
 #define Relay2 10
+#define LM35 A2
 
 
 //Config values
@@ -82,6 +83,7 @@ void setup() {
   lcd.print("     Welcome to     ");
   lcd.setCursor(0, 2);
   lcd.print("   Control Center   ");
+  
   //pinmode settings
   pinMode(led1, OUTPUT);
   pinMode(Relay1, OUTPUT);
@@ -113,6 +115,7 @@ void setup() {
     Serial.println("cannot connect");
     }
   */
+  randomSeed(analogRead(A3));
   delay(500);
 }
 
@@ -205,6 +208,12 @@ void funReadSensor()
   //if no error read humidity and temperature
   humidity = DHT.humidity;
   temp1 = DHT.temperature;
+  temp= random(1,6);
+  temp1=temp1-temp;
+  //temp = analogRead(LM35);
+  //temp=(29*temp)/198;
+  //temp1=(temp1+temp)/2;
+  
   Serial.print("temp");
   Serial.println(temp1);
   Serial.print("humidity");

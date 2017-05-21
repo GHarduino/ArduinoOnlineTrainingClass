@@ -8,7 +8,7 @@
 #include <IRremote.h>//for IR control //Control pin must be digital pin (3)!!!!!
 #include <LiquidCrystal_I2C.h>
 //for ethernet shield
-//#include <SPI.h>
+#include <SPI.h>
 //#include <Ethernet.h>
 
 /*
@@ -20,7 +20,7 @@
   EthernetClient client;
 */
 //LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); //16*4
-LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4 , 5, 6, 7, 3, POSITIVE); //20*4 Uno 4,5  Mega 20,21
+LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4 , 5, 6, 7, 3, POSITIVE); //20*4
 //LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 21, 20, 6, 7, 3, POSITIVE); //20*4
 //LiquidCrystal_I2C lcd(0x27, 20,4);
 
@@ -30,12 +30,15 @@ LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4 , 5, 6, 7, 3, POSITIVE); //20*4 Uno 4,5  
 #define DHT22_PIN 12   //pull down 10k digital
 #define ldr A0        //pull up 10k analog
 #define MQ2 A1        //pull up 10k analog
-#define IRtransmitter 9 //Uno 3  Mega 9
+#define IRtransmitter 9
 #define IRreceiver 2
 #define Buzzer 11
 #define led1 8
-#define Relay1 3
-#define Relay2 10
+#define Relay1 10
+#define Relay2 3
+#define Relay3 14
+#define Relay4 15
+#define LM35 A2
 
 
 //Config values
@@ -45,13 +48,15 @@ LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4 , 5, 6, 7, 3, POSITIVE); //20*4 Uno 4,5  
 
 //flags and key parameters
 static int sgas = 0;
-static int stemperature = 3; // 1-very cold <10  2-cold <20  3-normal 20-30 4-hot 30-35 5-very hot >35  deg C
-static int shumidity = 3; //  5-very humid >70  4-humid 60-70 3-normal 50-60 2-dry 50-40 1-very dry <40 %
+static int stemperature = 3; // 1-very cold <10  2-cold <20  3-normal 20-30 4-hot 30-35 5-very hot >35
+static int shumidity = 3; //  5-very humid >60  4-humid 50-60 3-normal 40-50 2-dry 40-30 1-very dry <30
 static int tflag[5] = {0, 0, 0, 0, 0}; //flag =3 trigger
 static int hflag[5] = {0, 0, 0, 0, 0}; //flag =3 trigger
 
 static String l, t, t1, h, g;
 static String st, sh;
+
+static int iShot=0;
 
 //IR object declare
 IRsend irsend;
@@ -82,10 +87,13 @@ void setup() {
   lcd.print("     Welcome to     ");
   lcd.setCursor(0, 2);
   lcd.print("   Control Center   ");
+
   //pinmode settings
   pinMode(led1, OUTPUT);
   pinMode(Relay1, OUTPUT);
   pinMode(Relay2, OUTPUT);
+  pinMode(Relay3, OUTPUT);
+  pinMode(Relay4, OUTPUT);
   pinMode(Buzzer, OUTPUT);
 
   Serial.println("Hello,Green Hackers!"); //$
@@ -113,6 +121,7 @@ void setup() {
     Serial.println("cannot connect");
     }
   */
+  randomSeed(analogRead(A3));
   delay(500);
 }
 
@@ -205,6 +214,14 @@ void funReadSensor()
   //if no error read humidity and temperature
   humidity = DHT.humidity;
   temp1 = DHT.temperature;
+  //tune
+  temp = random(1, 6);
+  temp1 = temp1 - temp;
+  //tune end
+  //temp = analogRead(LM35);
+  //temp=(29*temp)/198;
+  //temp1=(temp1+temp)/2;
+
   Serial.print("temp");
   Serial.println(temp1);
   Serial.print("humidity");
@@ -252,7 +269,6 @@ void funReadSensor()
     {
       stemperature = 1;
       funShowFuzzyResult();
-      //if you want clear count tflag[0]=0;      
     }
   }
   else if ((T1 >= 10) && (T1 < 20))
@@ -269,7 +285,7 @@ void funReadSensor()
       funShowFuzzyResult();
     }
   }
-  else if ((T1 >= 20) && (T1 < 30))
+  else if ((T1 >= 20) && (T1 < 25))
   {
     tflag[0] = 0;
     tflag[1] = 0;
@@ -283,7 +299,7 @@ void funReadSensor()
       funShowFuzzyResult();
     }
   }
-  else if ((T1 >= 30) && (T1 <= 35))
+  else if ((T1 >= 25) && (T1 <= 30))
   {
     tflag[0] = 0;
     tflag[1] = 0;
@@ -297,7 +313,7 @@ void funReadSensor()
       funShowFuzzyResult();
     }
   }
-  else if (T1 > 35)
+  else if (T1 > 30)
   {
     tflag[0] = 0;
     tflag[1] = 0;
@@ -450,34 +466,33 @@ void funShowFuzzyResult()
   lcd.clear();
   switch (stemperature)
   {
-    case 1: lcd.setCursor(0, 0); lcd.print("Temp:     Very Cold");  break;     
-    case 2: lcd.setCursor(0, 0); lcd.print("Temp:     Cold");       break;
-    case 3: lcd.setCursor(0, 0); lcd.print("Temp:     Normal");     break;
-    case 4: lcd.setCursor(0, 0); lcd.print("Temp:     Hot");        break;
+    case 1: lcd.setCursor(0, 0); lcd.print("Temp:     Very Cold");   break;
+    case 2: lcd.setCursor(0, 0); lcd.print("Temp:     Cold");        break;
+    case 3: lcd.setCursor(0, 0); lcd.print("Temp:     Normal");      break;
+    case 4: lcd.setCursor(0, 0); lcd.print("Temp:     Hot");         break;
     case 5: lcd.setCursor(0, 0); lcd.print("Temp:     Very Hot");   break;
   }
   lcd.setCursor(0, 1); lcd.print(t1); lcd.print(" *C");
   switch (shumidity)
   {
-    case 1: lcd.setCursor(0, 2); lcd.print("Humidity: Very Humid");   digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH); break;
-    case 2: lcd.setCursor(0, 2); lcd.print("Humidity: Humid");        digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,LOW); break;
-    case 3: lcd.setCursor(0, 2); lcd.print("Humidity: Normal");       digitalWrite(Relay2,LOW);  digitalWrite(Relay1,LOW); break;
-    case 4: lcd.setCursor(0, 2); lcd.print("Humidity: Dry");          digitalWrite(Relay2,LOW);  digitalWrite(Relay1,LOW); break;
-    case 5: lcd.setCursor(0, 2); lcd.print("Humidity: Very Dry");     digitalWrite(Relay2,LOW);  digitalWrite(Relay1,LOW); break;
+    case 1: lcd.setCursor(0, 2); lcd.print("Humidity: Very Humid");    break;
+    case 2: lcd.setCursor(0, 2); lcd.print("Humidity: Humid");         break;
+    case 3: lcd.setCursor(0, 2); lcd.print("Humidity: Normal");        break;
+    case 4: lcd.setCursor(0, 2); lcd.print("Humidity: Dry");           break;
+    case 5: lcd.setCursor(0, 2); lcd.print("Humidity: Very Dry");      break;
   }
 
-  /*
-  switch(stemperature+(5-shumidity))
+
+  switch (stemperature + shumidity)
   {
-    case 5:   Serial.println("case 7"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);   break;
-    case 6:   Serial.println("case 7"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);   break;
-    case 7:   Serial.println("case 7"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);   break;
-    case 8:   Serial.println("case 8"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);  break;
-    case 9:   Serial.println("case 9"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);  break;
-    case 10:  Serial.println("case 10"); digitalWrite(Relay2,HIGH);  digitalWrite(Relay1,HIGH);  break;
-    default:  Serial.println("case 2-4"); digitalWrite(Relay2,LOW);   digitalWrite(Relay1,LOW);  break;
+
+    case 7:     funRelay(1);    break;
+    case 8:     funRelay(2);    break;
+    case 9:     funRelay(3);    break;
+    case 10:    funRelay(4);    break;
+    default:    funRelay(0);    break;
   }
-  */
+
   lcd.setCursor(0, 3); lcd.print(h); lcd.print(" %");
   funFuzzyControlAircon(stemperature + shumidity);
   funBuzzerLed();
@@ -514,7 +529,9 @@ void funFuzzyControlAircon(int iFuzzy)
   unsigned int irUp[] = {700, 3500 , 850, 3400 , 800 , 3400, 850, 3350, 850 , 1300, 900, 1300 , 850, 3350, 850, 1350, 900, 1300, 850, 1350 , 850, 1300, 850, 1300, 900, 3350 , 850, 3350, 850 , 1350, 800, 3400, 950, 3350, 850, 3350, 850, 1350, 850, 1300, 900, 3350, 850, 3350, 850, 3350, 850, 3400, 850, 1350, 850, 1300, 850 , 3400, 850, 3350, 850, 1300, 850, 1350, 850, 1300, 850, 1350, 900, 1300, 850, 3400, 800, 1350, 800, 3400, 850, 1300, 850, 3400, 800, 1350, 850, 1350, 900, 3350, 850, 1350 , 800 , 3400, 800, 1350, 850 , 3400, 800, 1350, 800 , 3400, 850 , 3400, 750};
 
   int iCount = iFuzzy - 6;
-
+  iShot=iShot+1;
+  Serial.println(iShot);
+  Serial.print("Count = "); Serial.print(iCount);
   if (iCount > 0)
   {
     for (int i = 0; i < iCount; i++)
@@ -537,6 +554,24 @@ void funFuzzyControlAircon(int iFuzzy)
       irsend.sendRaw(irUp, sizeof(irUp) / sizeof(irUp[0]), khz);
       delay(300);
     }
+  }
+
+}
+
+void funRelay(int i)
+{
+  switch (i)
+  {
+    case 1: digitalWrite(Relay1, HIGH);  digitalWrite(Relay2, LOW); digitalWrite(Relay3, LOW); digitalWrite(Relay4, LOW); 
+            Serial.println("Relay 1 ON");break;
+    case 2: digitalWrite(Relay1, HIGH);  digitalWrite(Relay2, HIGH); digitalWrite(Relay3, LOW); digitalWrite(Relay4, LOW); 
+            Serial.println("Relay 1,2 ON");break;
+    case 3: digitalWrite(Relay1, HIGH);  digitalWrite(Relay2, HIGH); digitalWrite(Relay3, HIGH); digitalWrite(Relay4, LOW); 
+            Serial.println("Relay 1,2,3 ON");break;
+    case 4: digitalWrite(Relay1, HIGH);  digitalWrite(Relay2, HIGH); digitalWrite(Relay3, HIGH); digitalWrite(Relay4, HIGH); 
+            Serial.println("Relay 1,2,3,4 ON");break;
+    default: digitalWrite(Relay1, LOW);  digitalWrite(Relay2, LOW); digitalWrite(Relay3, LOW); digitalWrite(Relay4, LOW); 
+             Serial.println("ALL Relay OFF");break;
   }
 
 }
