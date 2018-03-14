@@ -11,19 +11,29 @@
 Servo myservo;  // create servo object to control a servo
 
 void setup() {
-  myservo.attach(9);  // attaches the servo on pin 9 to the servo object
+ // myservo.attach(9);  // attaches the servo on pin 9 to the servo object
 }
 void loop() {
-  for (int i = 0; i < 180; i += 10)
-  {
-    myservo.write(i);
-    delay(100);
-  }
-  for (int i = 180; i >0; i -= 10)
-  {
-    myservo.write(i);
-    delay(100);
-  }
+  myservo.attach(9);
+  myservo.write(90);
+  delay(1000);
+  myservo.detach();
+  delay(1000);
+  myservo.attach(9);
+  myservo.write(75);
+  delay(1000);
+  myservo.detach();
+  delay(1000);
+  myservo.attach(9);
+  myservo.write(105);
+  delay(1000);
+  myservo.detach();
+  delay(1000);
+  myservo.attach(9);
+  myservo.write(75);
+  delay(1000);
+  myservo.detach();
+  delay(1000);
 
 }
 

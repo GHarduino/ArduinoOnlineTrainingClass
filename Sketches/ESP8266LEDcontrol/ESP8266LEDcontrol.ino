@@ -8,9 +8,9 @@ ESP8266WiFiMulti WiFiMulti;
 const char WiFiSSID[] = "es";
 const char WiFiPSK[] = "asdfghjkl";
 
-const int LED_PIN = 4;
+const int LED_PIN = 7;
 const int ANALOG_PIN = A0;
-const int DIGITAL_PIN = 4;
+const int DIGITAL_PIN = 7;
 
 WiFiServer server(80);
 
@@ -47,6 +47,7 @@ void connectWiFi()
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   digitalWrite(LED_PIN,LOW);
+  delay(2000);
   
 }
 

@@ -58,7 +58,7 @@ void loop()
  delay(100);
  mySerial.println("AUNG WIN HTUT GSM SHIELD!");//the content of the message
  delay(100);
- mySerial.println((char)26);//the ASCII code of the ctrl+z is 26
+ mySerial.println((char)26);//the ASCII code of the ctrl+z is 2       6
  delay(100);
  mySerial.println();
 }

@@ -19,7 +19,7 @@ const int DIGITAL_PIN = D2;
 WiFiServer server(80);
 
 String IPaddress;
-int lightVal=0;
+int lightval0=0;
 String light;
 
 void connectWiFi()
@@ -132,53 +132,65 @@ void loop() {
   client.flush();
 
   //Match the request
-  int val = -1; //we'll use val to keep track of both read/set and value if set
+  int val0 = -1; //we'll use val0 to keep track of both read/set and val0ue if set
+  int val1 = -1; //we'll use val0 to keep track of both read/set and val0ue if set
+  int val2 = -1; //we'll use val0 to keep track of both read/set and val0ue if set
   if (req.indexOf("/led0/0")!=-1)
   {
-    val =0; //led off
+    val0 =0; //led off
     Serial.println(req.indexOf("/led0/0"));    
   }
   else if(req.indexOf("/led0/1")!=-1)
   {
-    val =1; //led on
+    val0 =1; //led on
     Serial.println(req.indexOf("/led0/1"));
   }
-  if (req.indexOf("/led1/0")!=-1)
+  
+  else if (req.indexOf("/led1/0")!=-1)
   {
-    val =0; //led off
+    val1 =0; //led off
     Serial.println(req.indexOf("/led1/0"));    
   }
   else if(req.indexOf("/led1/1")!=-1)
   {
-    val =1; //led on
+    val1 =1; //led on
     Serial.println(req.indexOf("/led1/1"));
   }
-  if (req.indexOf("/led2/0")!=-1)
+  
+  else if (req.indexOf("/led2/0")!=-1)
   {
-    val =0; //led off
+    val2 =0; //led off
     Serial.println(req.indexOf("/led2/0"));    
   }
   else if(req.indexOf("/led2/1")!=-1)
   {
-    val =1; //led on
+    val2 =1; //led on
     Serial.println(req.indexOf("/led2/1"));
   }
   else if(req.indexOf("/read")!=-1)
   {
-    val =-2;//will print pin reads
-    lightVal=analogRead(ANALOG_PIN);
+    val0 =-2;//will print pin reads
+    lightval0=analogRead(ANALOG_PIN);
   }
-  //Otherwise request will be invalid. we'll say as much in html
+  //Otherwise request will be inval0id. we'll say as much in html
   else if(req.indexOf("/ip")!=-1)
   {
-     val = -3; //will print ip address
+     val0 = -3; //will print ip address
      Serial.println("IP address: ");    
      Serial.println(ipToString());
   }
   //Set GPIO5 according to the request
-  if(val>=0)
+  if(val0>=0)
   {
-    digitalWrite(LED_PIN,val);
+    digitalWrite(D2,val0);
+  }
+   if(val1>=0)
+  {
+    digitalWrite(D0,val1);
+  }
+   if(val2>=0)
+  {
+    digitalWrite(D1,val2);
   }
   client.flush();
 
@@ -187,15 +199,15 @@ void loop() {
   s += "Content-Type: text/html\r\n\r\n";
   s += "<!DOCTYPE HTML>\r\n<html>\r\n";
   // If we're setting the LED, print out a message saying we did
-  if(val >=0)
+  if(val0 >=0)
   {
     s += "LED is now ";
-    s +=(val)?"on":"off";
+    s +=(val0)?"on":"off";
     Serial.println(s);
   }
-  else if(val == -2)
+  else if(val0 == -2)
   {
-    //If we're reading pins, print out those values;
+    //If we're reading pins, print out those val0ues;
     s += "Analog Pin = ";
     s += String(analogRead(ANALOG_PIN));
     s += "<br>";
@@ -205,17 +217,17 @@ void loop() {
     s += "IP Address = ";
     s += ipToString();
     s += "<br>"; 
-   //  s += "Light Value = ";
-   // s += String(lightVal);
+   //  s += "Light val0ue = ";
+   // s += String(lightval0);
    // s += "<br>"; 
 
-    Serial.println("Reading Values");
+    Serial.println("Reading val0ues");
     Serial.print("LED status : ");
     Serial.println(digitalRead(DIGITAL_PIN));
    
   
   }
-  else if(val == -3)
+  else if(val0 == -3)
   {
     s += "IP Address = ";
     s += ipToString();
@@ -229,9 +241,9 @@ void loop() {
   {
     s +=req;
     s +="\n\n";
-    s +="Invalid Request.<br> Try /led/1 or /led/0 or /read.";
+    s +="Inval0id Request.<br> Try /led/1 or /led/0 or /read.";
 
-    Serial.print("Invalid request!!! ");
+    Serial.print("Inval0id request!!! ");
   }
 
   s+="</html\n";
